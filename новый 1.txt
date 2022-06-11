@@ -1,0 +1,44 @@
+USE [куку]
+GO
+/****** Object:  Trigger [dbo].[result_summ]    Script Date: 06.06.2022 9:16:22 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER trigger [dbo].[result_summ]
+on [dbo].[Buy] 
+after insert,update
+as
+declare @idpoc int
+declare @idchek int
+declare @idbuyer int
+
+set @idpoc = (select [product_id] from inserted)
+set @idchek = (select [check_id] from inserted)
+set @idbuyer =(select [buyer_id] from [Check] where @idchek=[check_id] )
+
+update [Check]
+set [summ] = summ + (select [price] from Product where product_id=@idpoc )  * (select weight_buy from Buy where product_id=@idpoc) where [Check].check_id=@idchek
+
+
+
+
+
+
+
+
+
+
+
+create trigger [dbo].[new_summ]
+on [dbo].[Buy]
+after insert
+as
+declare @idpr int
+declare @idchek int
+declare @idbuyer int
+set @idpr = (select product_id from INSERTED );
+set @idchek = (select weight_buy from INSERTED );
+set @idbuyer=(select [buyer_id] from [Check] where @idchek=[check_id]);
+update [Check]
+set [summ] = summ + (select [price] from Product where product_id=@idpr )  * (select weight_buy from Buy where product_id=@idpr) where [Check].check_id=@idchek
